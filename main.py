@@ -1,15 +1,22 @@
 import requests
-from flask import Flask
+from flask import Flask, render_template
 
 
 app = Flask(__name__)
 
 
-def get_course(currency):
+def get_course(currency, amount):
     response = requests.get('https://api.exchangeratesapi.io/latest')
     response_json = response.json()
     rates = response_json['rates']
-    return rates[currency]
+    value = rates[currency] * amount
+    get_log(currency, rates, amount, value)
+    return str(value)
+
+
+def get_log(currency, rates, amount, value):
+    with open("history.txt", "a") as h:
+        h.write(f'{currency},{rates[currency]},{amount},{value}\n')
 
 
 @app.route('/')
@@ -19,38 +26,25 @@ def index():
 
 @app.route('/eur_to_usd/<int:amount>/')
 def eur_to_usd(amount):
-    course = get_course("USD")
-    euro = course * amount
-    with open("history.html", "a") as h:
-        h.write(f'<p>USD,{course},{amount},{euro}</p>')
-    return str(euro)
+    return get_course('USD', amount)
 
 
 @app.route('/eur_to_gbp/<int:amount>/')
 def eur_to_gbp(amount):
-    course = get_course("GBP")
-    euro = course * amount
-    with open("history.html", "a") as h:
-        h.write(f'<p>GBP,{course},{amount},{euro}</p>')
-    return str(euro)
+    return get_course('GBP', amount)
 
 
 @app.route('/eur_to_php/<int:amount>/')
 def eur_to_php(amount):
-    course = get_course("PHP")
-    euro = course * amount
-    with open("history.html", "a") as h:
-        h.write(f'<p>PHP,{course},{amount},{euro}</p>')
-    return str(euro)
+    return get_course('PHP', amount)
 
 
 @app.route('/history/')
 def get_history():
-    with open('history.html', 'r') as h:
-        read_hist = h.read()
-    return read_hist
+    with open('history.txt') as h:
+        read_hist = h.readlines()
+    return render_template('history_template.html', hist=read_hist)
 
 
 if __name__ == '__main__':
-    open('history.html', 'tw')
     app.run()
