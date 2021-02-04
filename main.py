@@ -65,7 +65,7 @@ def eur_to_usd(amount):
 
 @app.route('/eur_to_gbp/<int:amount>/')
 def eur_to_gbp(amount):
-    return get_course(str('GBP'), amount)
+    return get_course('GBP', amount)
 
 
 @app.route('/eur_to_php/<int:amount>/')
